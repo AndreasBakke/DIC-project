@@ -1,3 +1,4 @@
+`timescale 1 ns / 1 ps
 //====================================================================
 //        Copyright (c) 2021 Carsten Wulff Software, Norway
 // ===================================================================
@@ -46,8 +47,8 @@ module PIXEL_SENSOR
    );
 
    real             v_erase = 1.2;
-   real             lsb = v_erase/255;
-   parameter real   dv_pixel = 0.5;
+   real             lsb = v_erase/255; //1/255 av basespenning.
+   parameter real   dv_pixel = 0.5; //photodiode current
 
    real             tmp;
    logic            cmp;
@@ -71,8 +72,9 @@ module PIXEL_SENSOR
    //----------------------------------------------------------------
    // Use bias to provide a clock for integration when exposing
    always @(posedge VBN1) begin
-      if(EXPOSE)
-        tmp = tmp - dv_pixel*lsb;
+      if(EXPOSE)//Når vi exposer øker tmp gradvis. helt til et gitt nivå.
+         //går fra 1.2 til 0.6 (halveres avhengig av dv_pixel) //Hvorfor endrer tmp seg???? Hva integrationer vi?
+         tmp = tmp - dv_pixel*lsb; //Vår "input i fig6" hva er fysisk betydning?Dv=? lsb=?
    end
 
    //----------------------------------------------------------------
@@ -80,10 +82,10 @@ module PIXEL_SENSOR
    //----------------------------------------------------------------
    // Use ramp to provide a clock for ADC conversion, assume that ramp
    // and DATA are synchronous
-   always @(posedge RAMP) begin
-      adc = adc + lsb;
-      if(adc > tmp)
-        cmp <= 1;
+   always @(posedge RAMP) begin //Så øker vi adc gradvis helt til vi når input!!!!!
+      adc = adc + lsb; //Vi øker adc med Lsb? hva er LSB?
+      if(adc > tmp)//Stopper når adc (vår liksomRamp blir høyere enn input tmp )
+        cmp <= 1;//Her stopper vi å lagre data.
    end
 
    //----------------------------------------------------------------
@@ -91,15 +93,14 @@ module PIXEL_SENSOR
    //----------------------------------------------------------------
    always_comb  begin
       if(!cmp) begin
-         p_data = DATA;
+         p_data = DATA;//Lagrer data (som vi får inn fra tb) i p_data helt til CMP=1
       end
-
    end
 
    //----------------------------------------------------------------
    // Readout
    //----------------------------------------------------------------
    // Assign data to bus when pixRead = 0
-   assign DATA = READ ? p_data : 8'bZ;
+   assign DATA = READ ? p_data : 8'bZ; //når vi leser henter vi ut p_data til minne
 
 endmodule // re_control
