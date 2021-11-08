@@ -11,12 +11,16 @@ pstate:
 	iverilog -g2012 -o pixelState -c pixelState.fl
 	vvp -n pixelState
 
+ptop:
+	iverilog -g2012 -o pixelTop -c pixelTop.fl
+	vvp -n pixelTop
+
 psfsm:
 	iverilog -g2012 -o pixelSensorFsm -c pixelSensorFsm.fl
 	vvp -n pixelSensorFsm
 
 
-ysfsm: synth
+ysfsm:
 	dot pixelSensorFsm.dot -Tpng > pixelSensorFsm.png
 
 synth:
