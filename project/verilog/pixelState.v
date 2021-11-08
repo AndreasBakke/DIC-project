@@ -65,9 +65,7 @@ module PIXEL_STATE (
             state = ERASE;
             counter = c_erase;
             next_counter=c_expose;
-            convert=0;//Kan denne sløyfes?
-            // ramp =0;
-            // vbn =0;
+            convert=0;
         end
         else begin
             if (!counter) begin
@@ -96,11 +94,6 @@ module PIXEL_STATE (
             end //end if(!counter)
         end//end else
     end //end always_comb
-    
-    //-----
-    //ADC/DAC control
-    //-----
-
 
 endmodule
 
