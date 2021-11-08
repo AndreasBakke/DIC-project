@@ -8,7 +8,7 @@ pa:
 	vvp -n pixelArray
 
 pafsm:
-	iverilog -g2012 -i pixelArrayFsm -c pixelArrayFsm.fl
+	iverilog -g2012 -o pixelArrayFsm -c pixelArrayFsm.fl
 	vvp -n pixelArrayFsm
 
 psfsm:
