@@ -1,7 +1,7 @@
 `timescale 1 ns / 1 ps
 
 
-module pixelArrayFsm_tb;
+module pixelState_tb;
 
     logic clk=0;
     logic reset=0;
@@ -29,7 +29,7 @@ module pixelArrayFsm_tb;
     tri[7:0] pixData4;
 
     PIXEL_ARRAY     pa1(anaBias, anaRamp, reset, erase, expose, read, pixData1, pixData2, pixData3, pixData4);
-    PIXEL_ARRAY_FSM pafsm1(clk, reset, erase, read, expose, convert);
+    PIXEL_STATE pafsm1(clk, reset, erase, read, expose, convert);
 
 
     //----------------------------------------------------
@@ -92,8 +92,8 @@ module pixelArrayFsm_tb;
 
             #clk_period  reset=0;
 
-            $dumpfile("pixelArrayFsm_tb.vcd");
-            $dumpvars(0,pixelArrayFsm_tb);
+            $dumpfile("pixelState.vcd");
+            $dumpvars(0, pixelState_tb);
 
             #sim_end
             $stop;

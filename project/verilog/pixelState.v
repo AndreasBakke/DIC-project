@@ -2,7 +2,7 @@
 
 
 
-module PIXEL_ARRAY_FSM (
+module PIXEL_STATE (
     input   logic   clk,
     input   logic   reset,
     output  logic   erase,

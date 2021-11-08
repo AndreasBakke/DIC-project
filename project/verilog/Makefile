@@ -7,9 +7,9 @@ pa:
 	iverilog -g2012 -o pixelArray -c pixelArray.fl
 	vvp -n pixelArray
 
-pafsm:
-	iverilog -g2012 -o pixelArrayFsm -c pixelArrayFsm.fl
-	vvp -n pixelArrayFsm
+pstate:
+	iverilog -g2012 -o pixelState -c pixelState.fl
+	vvp -n pixelState
 
 psfsm:
 	iverilog -g2012 -o pixelSensorFsm -c pixelSensorFsm.fl
