@@ -7,6 +7,10 @@ pa:
 	iverilog -g2012 -o pixelArray -c pixelArray.fl
 	vvp -n pixelArray
 
+pafsm:
+	iverilog -g2012 -i pixelArrayFsm -c pixelArrayFsm.fl
+	vvp -n pixelArrayFsm
+
 psfsm:
 	iverilog -g2012 -o pixelSensorFsm -c pixelSensorFsm.fl
 	vvp -n pixelSensorFsm
