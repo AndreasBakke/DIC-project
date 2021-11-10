@@ -5,18 +5,15 @@ module pixelState_tb;
 
     logic clk=0;
     logic reset=0;
-    parameter integer clk_period = 500; //5ns
+    parameter integer clk_period = 500; //500ns
     parameter integer sim_end = clk_period*2400;
     always #clk_period clk=~clk;
 
 
 
-    //anaologe signaler
+    //analoge signaler
     logic   anaBias;
     logic   anaRamp;
-    logic   anaReset;
-
-    assign anaReset =1;
 
     //digital
     wire erase;
@@ -60,7 +57,7 @@ module pixelState_tb;
         end
     end
 
-//leser av databus
+    //leser av databus
     logic [7:0] pixelDataOut1;
     logic [7:0] pixelDataOut2;
     logic [7:0] pixelDataOut3;
@@ -83,9 +80,9 @@ module pixelState_tb;
     end
 
 
-//-----------------
-// Kjør testbench
-//-----------------
+    //-----------------
+    // Kjør testbench
+    //-----------------
     initial
         begin
             reset = 1;

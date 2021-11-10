@@ -11,7 +11,7 @@ module pixelArray_tb;
 
 logic clk = 0;
 logic reset = 0;
-parameter integer clk_period = 500;//5ns
+parameter integer clk_period = 500;//500ns
 parameter integer sim_end = clk_period*2400;//sim varer 2400 klokkesykluser
 always #clk_period clk = ~clk;
 

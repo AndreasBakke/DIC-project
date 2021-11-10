@@ -60,14 +60,11 @@ module PIXEL_STATE (
 
 //Bruk always_comb istedenfor siden dette er kombinatorikk
     always_ff @(posedge clk or posedge reset) begin
-        counter = counter -1;
         if(reset)begin
             state = ERASE;
             counter = c_erase;
             next_counter=c_expose;
-            convert=0;//Kan denne sløyfes?
-            // ramp =0;
-            // vbn =0;
+            convert=0;
         end
         else begin
             if (!counter) begin
@@ -95,12 +92,8 @@ module PIXEL_STATE (
                 endcase
             end //end if(!counter)
         end//end else
+        counter = counter -1;
     end //end always_comb
-    
-    //-----
-    //ADC/DAC control
-    //-----
-
 
 endmodule
 
