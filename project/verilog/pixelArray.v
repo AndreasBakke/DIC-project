@@ -25,13 +25,15 @@ module PIXEL_ARRAY(
     tri[7:0] pixData3;
     tri[7:0] pixData4;
 
-    PIXEL_SENSOR #(.dv_pixel(0.2)) ps1(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData1);
+    PIXEL_SENSOR #(.dv_pixel(0.48)) ps1(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData1);
     PIXEL_SENSOR #(.dv_pixel(0.5)) ps2(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData2);//Gir ulike antatte photocurrents for å skille
-    PIXEL_SENSOR #(.dv_pixel(0.7)) ps3(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData3);
-    PIXEL_SENSOR #(.dv_pixel(0.9)) ps4(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData4);
+    PIXEL_SENSOR #(.dv_pixel(0.52)) ps3(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData3);
+    PIXEL_SENSOR #(.dv_pixel(0.54)) ps4(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData4);
 
 
-    //Styrer ADC og sånt
+    //--------------------------
+    //  ADC/DAC 
+    //--------------------------
     logic[7:0] data;
     //Dette er egentlig analoge signaler, men vi simulerer de på denne måten
 
@@ -40,8 +42,7 @@ module PIXEL_ARRAY(
     assign pixData3 = READ ? 8'bZ: data;
     assign pixData4 = READ ? 8'bZ: data;
 
-
-    always_ff @(posedge RAMP or posedge RESET) begin
+    always_ff @(posedge RAMP or posedge VBN or posedge RESET) begin
         if(RESET) begin
             data=0;
         end

@@ -6,7 +6,7 @@ module pixelTop_tb();
     logic clk=0;    
     logic reset=0;
     parameter integer clk_period =500;
-    parameter integer sim_end =clk_period*2400;
+    parameter integer sim_end =clk_period*7200;
     always #clk_period clk=~clk;
 
     //analoge signaler
@@ -71,10 +71,6 @@ module pixelTop_tb();
     // end
 
 
-
-    
-
-
     //-----------------
     // Kjør testbench
     //-----------------
@@ -85,8 +81,9 @@ module pixelTop_tb();
             #clk_period  reset=0;
 
             $dumpfile("pixelTop.vcd");
-            $dumpvars(0, pixelTop_tb);
-
+            $dumpvars(0, pixelTop_tb);     
+            #600000; reset=1;#clk_period;
+            reset=0;
             #sim_end
             $stop;
 

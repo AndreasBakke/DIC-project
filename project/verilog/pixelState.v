@@ -60,7 +60,6 @@ module PIXEL_STATE (
 
 //Bruk always_comb istedenfor siden dette er kombinatorikk
     always_ff @(posedge clk or posedge reset) begin
-        counter = counter -1;
         if(reset)begin
             state = ERASE;
             counter = c_erase;
@@ -93,6 +92,7 @@ module PIXEL_STATE (
                 endcase
             end //end if(!counter)
         end//end else
+        counter = counter -1;
     end //end always_comb
 
 endmodule
