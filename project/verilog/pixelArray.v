@@ -20,10 +20,10 @@ module PIXEL_ARRAY(
     output  reg [7:0] DATA4
 );
 
-    tri[7:0] pixData1;
-    tri[7:0] pixData2;
-    tri[7:0] pixData3;
-    tri[7:0] pixData4;
+    wire [7:0] pixData1;
+    wire [7:0] pixData2;
+    wire [7:0] pixData3;
+    wire [7:0] pixData4;
 
     PIXEL_SENSOR #(.dv_pixel(0.48)) ps1(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData1);
     PIXEL_SENSOR #(.dv_pixel(0.5)) ps2(VBN, RAMP, RESET, ERASE, EXPOSE, READ, pixData2);//Gir ulike antatte photocurrents for å skille
@@ -36,18 +36,19 @@ module PIXEL_ARRAY(
     //--------------------------
     logic[7:0] data;
     //Dette er egentlig analoge signaler, men vi simulerer de på denne måten
-
+    //Kjører databus som input til pixelsensorene når vi ikke leser. Når vi leser blir den benyttet som output
     assign pixData1 = READ ? 8'bZ: data;//føler dette bør flyttes.
     assign pixData2 = READ ? 8'bZ: data;
     assign pixData3 = READ ? 8'bZ: data;
     assign pixData4 = READ ? 8'bZ: data;
 
+    //Driver digital ramp.
     always_ff @(posedge RAMP or posedge VBN or posedge RESET) begin
         if(RESET) begin
             data=0;
         end
         if(CONVERT) begin
-            data+=1; //Så lenge convert =1, vil anaRamp kjøre^^ og data inkrementeres (counter (digital ramp)) når adc>tmp latches verdien til data, men data fortsetter å inkrementeres
+            data= data + 1; //Så lenge convert =1, vil anaRamp kjøre^^ og data inkrementeres (counter (digital ramp)) når adc>tmp latches verdien til data, men data fortsetter å inkrementeres
         //p_data blir data så lenge cmp=0 (som stopper når adc>tmp som nevnt ovenfor skjer)
         end
         else begin
@@ -62,13 +63,14 @@ module PIXEL_ARRAY(
             DATA2 = 0;
             DATA3 = 0;
             DATA4 = 0;   
+
        end
        else begin
           if(READ)begin
-            DATA1 <= pixData1;
-            DATA2 <= pixData2;
-            DATA3 <= pixData3;
-            DATA4 <= pixData4;
+            DATA1 = pixData1;
+            DATA2 = pixData2;
+            DATA3 = pixData3;
+            DATA4 = pixData4;
           end
        end
     end

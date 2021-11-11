@@ -46,8 +46,8 @@ module PIXEL_SENSOR
 
    );
 
-   real             v_erase = 1.2;
-   real             lsb = v_erase/255; //1/255 av basespenning.
+   parameter real             v_erase = 1.2;
+   parameter real             lsb = v_erase/255; //1/255 av basespenning.
    parameter real   dv_pixel = 0.5; //photodiode current
 
    real             tmp;
@@ -73,7 +73,7 @@ module PIXEL_SENSOR
    // Use bias to provide a clock for integration when exposing
    always @(posedge VBN1) begin
       if(EXPOSE)//Når vi exposer øker tmp gradvis. helt til et gitt nivå.
-         //går fra 1.2 til 0.6 (halveres avhengig av dv_pixel) //Hvorfor endrer tmp seg???? Hva integrationer vi?
+         //tmp=tmp;
          tmp = tmp - dv_pixel*lsb; //Vår "input i fig6" hva er fysisk betydning?Dv=? lsb=?
    end
 
@@ -82,7 +82,7 @@ module PIXEL_SENSOR
    //----------------------------------------------------------------
    // Use ramp to provide a clock for ADC conversion, assume that ramp
    // and DATA are synchronous
-   always @(posedge RAMP) begin //Så øker vi adc gradvis helt til vi når input!!!!!
+   always @(posedge RAMP)begin //Så øker vi adc gradvis helt til vi når input!!!!!
       adc = adc + lsb; //Vi øker adc med Lsb? hva er LSB?
       if(adc > tmp)//Stopper når adc (vår liksomRamp blir høyere enn input tmp )
         cmp <= 1;//Her stopper vi å lagre data.

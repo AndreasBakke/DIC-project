@@ -16,6 +16,7 @@ module PIXEL_TOP (
     PIXEL_STATE pState1(clk, reset, erase, read, expose, convert);
     PIXEL_ARRAY pa1(VBN, RAMP, reset, erase, expose, read, convert, DATA1, DATA2, DATA3, DATA4);
 
+    //"Driver" de analoge signalene
     assign RAMP = convert ? clk : 0; //Så lenge denne kjører, øker adc i pixelsensoren frem til adc>tmp
     assign VBN = expose ? clk : 0; //Clk eller 0 avhengig av om state=expose
 
