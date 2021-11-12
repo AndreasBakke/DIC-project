@@ -1,0 +1,49 @@
+MEMORY CELL TESTBENCH 
+
+
+.include ../../models/ptm_130_ngspice.spi
+.include ../../lib/SUN_TR_GF130N.spi
+
+.option TNOM=27 GMIN=1e-15 reltol=1e-6 abstol=1e-6 
+.param VDD = 1.5
+.param TD_WRITE = 20u
+.param TRF = 1n
+.param PW_WRITE = 100u 
+.param TD_READ = 50u
+.param PW_READ = 20u
+.param TD_DATA = 1u
+.param PW_DATA = 20u 
+VDD VDD VSS dc VDD
+VSS VSS 0 dc 0
+
+VWRITE VWRITE VSS dc 0 pulse(0 VDD TD_WRITE TRF TRF PW_WRITE 0)
+
+VREAD VREAD VSS dc 0 pulse(0 VDD TD_READ TRF TRF PW_READ 0)
+
+VDATA VDATA VSS dc 0 pulse(0 VDD TD_DATA TRF TRF PW_DATA 0)
+
+*switch so that io line is not pulled low by low input when we read
+BR2 DMEM VDATA I=V(VDATA)*V(VDATA,DMEM)/1k
+
+.include memcell.cir
+XMEM VREAD VWRITE DMEM VSS MEMCELL 
+
+
+.control
+set color0=white
+set color1=black
+tran 1u 100u
+
+set hcopydevtype=svg
+
+plot v(VWRITE) v(VREAD) v(VDATA) v(XMEM.DMEM)
+
+
+set gnuplot_terminal = png/quit
+gnuplot memcell_signal_plot VWRITE VREAD VDATA 
+gnuplot memcell_gate_plot XMEM.DMEM XMEM.VG
+
+
+.endc
+.end
+
