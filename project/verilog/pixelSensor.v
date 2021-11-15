@@ -73,8 +73,7 @@ module PIXEL_SENSOR
    // Use bias to provide a clock for integration when exposing
    always @(posedge VBN1) begin
       if(EXPOSE)//Når vi exposer øker tmp gradvis. helt til et gitt nivå.
-         //tmp=tmp;
-         tmp = tmp - dv_pixel*lsb; //Vår "input i fig6" hva er fysisk betydning?Dv=? lsb=?
+         tmp = tmp - dv_pixel*lsb; //Vår "input i fig6"
    end
 
    //----------------------------------------------------------------
@@ -82,10 +81,10 @@ module PIXEL_SENSOR
    //----------------------------------------------------------------
    // Use ramp to provide a clock for ADC conversion, assume that ramp
    // and DATA are synchronous
-   always @(posedge RAMP)begin //Så øker vi adc gradvis helt til vi når input!!!!!
-      adc = adc + lsb; //Vi øker adc med Lsb? hva er LSB?
-      if(adc > tmp)//Stopper når adc (vår liksomRamp blir høyere enn input tmp )
-        cmp <= 1;//Her stopper vi å lagre data.
+   always @(posedge RAMP)begin //Så øker vi adc gradvis helt til vi når input
+      adc = adc + lsb; //Vi øker adc med Lsb. Som er 1/255 av basespenningen (slik at vi kan gå over et helt minne under exposure og integration)
+      if(adc > tmp)//Stopper når adc (vår liksomRamp) blir høyere enn input tmp 
+        cmp <= 1;//Da stopper vi å lagre data.
    end
 
    //----------------------------------------------------------------
@@ -93,7 +92,7 @@ module PIXEL_SENSOR
    //----------------------------------------------------------------
    always_comb  begin
       if(!cmp) begin
-         p_data = DATA;//Lagrer data (som vi får inn fra tb) i p_data helt til CMP=1
+         p_data = DATA;//Lagrer data (som vi får inn fra tb) i p_data helt til CMP=1 - da latches verdien i p_data
       end
    end
 
@@ -101,6 +100,6 @@ module PIXEL_SENSOR
    // Readout
    //----------------------------------------------------------------
    // Assign data to bus when pixRead = 0
-   assign DATA = READ ? p_data : 8'bZ; //når vi leser henter vi ut p_data til minne
+   assign DATA = READ ? p_data : 8'bZ; //når vi leser henter vi ut latchet verdi p_data.
 
 endmodule // re_control
