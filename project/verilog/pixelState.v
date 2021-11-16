@@ -1,12 +1,11 @@
 `timescale 1 ns / 1 ps
 
-
-
 module PIXEL_STATE (
     input   logic   clk,
     input   logic   reset,
     output  logic   erase,
-    output  logic   read,
+    output  logic   read0,
+    output  logic   read1,
     output  logic   expose,
     output  logic   convert
 );
@@ -19,7 +18,7 @@ module PIXEL_STATE (
 //--------------------------------------
 // State Machine - self made (men med mye likt tb)
 //--------------------------------------
-    parameter   ERASE=0, EXPOSE=1, CONVERT=2, READ=3, IDLE=4;
+    parameter   ERASE=0, EXPOSE=1, CONVERT=2, READ0=3, READ1 =4;
     logic [2:0] state;
     integer counter=c_erase;
     integer next_counter=c_expose;
@@ -30,29 +29,39 @@ module PIXEL_STATE (
                 erase   <= 1;
                 expose  <= 0;
                 convert <= 0;
-                read    <= 0;
+                read0   <= 0;
+                read1   <= 0;
             end
             EXPOSE: begin
                 erase   <= 0;
                 expose  <= 1;
                 convert <= 0;
-                // read    <= 0;//prøver først uten
+                read0   <= 0;
+                read1   <= 0;
                 // vbn     = clk;
             end
             CONVERT: begin
                 erase   <= 0;
                 expose  <= 0;
                 convert <= 1;
-                read    <= 0;
+                read0   <= 0;
+                read1   <= 0;
                 // vbn     = 0;//Går dette?
                 // ramp    = clk;
             end
-            READ: begin
+            READ0: begin
                 erase   <= 0;
                 expose  <= 0;
                 convert <= 0;
-                read    <= 1;
-                // ramp    = 0;
+                read0 <= 1;
+                read1 <= 0;
+            end
+            READ1: begin
+                erase   <= 0;
+                expose  <= 0;
+                convert <= 0;
+                read0 <= 0;
+                read1 <= 1;
             end
         endcase
     end
@@ -71,22 +80,27 @@ module PIXEL_STATE (
                 case (state)
                     ERASE: begin
                         state       = EXPOSE;
-                        counter     =next_counter;
+                        counter     = next_counter;
                         next_counter= c_convert;
                     end
                     EXPOSE: begin
                         state       = CONVERT;
-                        counter     =next_counter;
+                        counter     = next_counter;
                         next_counter= c_read;
                     end
                     CONVERT: begin
-                        state       = READ; 
-                        counter     =next_counter;
+                        state       = READ0; 
+                        counter     = next_counter;
+                        next_counter= c_read;
+                    end
+                    READ0: begin
+                        state       = READ1; 
+                        counter     = next_counter;
                         next_counter= c_erase;
                     end
-                    READ: begin
-                        state       = ERASE; 
-                        counter     =next_counter;
+                    READ1: begin
+                        state       = ERASE;
+                        counter     = next_counter;
                         next_counter= c_expose;
                     end
                 endcase
