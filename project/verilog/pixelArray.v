@@ -18,10 +18,10 @@ module PIXEL_ARRAY(
     wire [7:0] pixData3;
     wire [7:0] pixData4;
 
-    PIXEL_SENSOR #(.dv_pixel(0.48)) ps1(VBN, RAMP, RESET, ERASE, EXPOSE, READ0, pixData1);
-    PIXEL_SENSOR #(.dv_pixel(0.5)) ps2(VBN, RAMP, RESET, ERASE, EXPOSE, READ0, pixData2);//Gir ulike photocurrents for å skille
-    PIXEL_SENSOR #(.dv_pixel(0.52)) ps3(VBN, RAMP, RESET, ERASE, EXPOSE, READ1, pixData3);
-    PIXEL_SENSOR #(.dv_pixel(0.54)) ps4(VBN, RAMP, RESET, ERASE, EXPOSE, READ1, pixData4);
+    PIXEL_SENSOR #(.dv_pixel(0.48)) ps1(VBN, RAMP, ERASE, EXPOSE, READ0, pixData1);
+    PIXEL_SENSOR #(.dv_pixel(0.5)) ps2(VBN, RAMP, ERASE, EXPOSE, READ0, pixData2);//Gir ulike photocurrents for å skille
+    PIXEL_SENSOR #(.dv_pixel(0.52)) ps3(VBN, RAMP, ERASE, EXPOSE, READ1, pixData3);
+    PIXEL_SENSOR #(.dv_pixel(0.54)) ps4(VBN, RAMP, ERASE, EXPOSE, READ1, pixData4);
 
 
     //--------------------------
