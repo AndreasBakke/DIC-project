@@ -23,7 +23,8 @@ MEMORY CELL TESTBENCH
 
 *- Delay of control signals
 .param TD_ERASE = {TCLK }
-.param TD_EXPOSE = {TD_ERASE - 5*PW_ERASE + TCLK}
+.param TD_EXPOSE = {TD_ERASE + PW_ERASE + TCLK}
+*.param TD_EXPOSE = {TD_ERASE - 5*PW_ERASE + TCLK}
 .param TD_CONVERT = {TD_EXPOSE + PW_EXPOSE + TCLK}
 .param TD_READ = {TD_CONVERT + PW_CONVERT + TCLK}
 .param PERIOD = {TD_READ + PW_READ + TCLK}
@@ -34,7 +35,6 @@ MEMORY CELL TESTBENCH
 .param VADC_REF = {VADC_MAX - VADC_MIN}
 .param VADC_LSB = {VADC_REF/256}
 
-VMIN VMIN 0 DC VADC_MIN
 
 *----------------------------------------------------------------
 * Sources
@@ -44,10 +44,15 @@ VSS VSS 0 dc 0
 
 *- Control signals
 VERASE ERASE 0 dc 0 pulse (0 VDD TD_ERASE TRF TRF PW_ERASE PERIOD)
-VWRITE WRITE 0 dc 0 pulse (0 VDD TD_EXPOSE TRF TRF PW_EXPOSE PERIOD)
+VWRITE WRITE 0 dc 0 pulse (0 VDD 0 TRF TRF 10u 25u)
 VCONVERT CONVERT 0 dc 0 pulse (0 VDD TD_CONVERT TRF TRF PW_CONVERT PERIOD)
-VREAD READ 0 dc 0 pulse (0 VDD TD_READ TRF TRF PW_READ PERIOD)
+VREAD READ 0 dc 0 pulse (0 VDD 30u TRF TRF PW_READ PERIOD)
 
+*- ADC related sources
+VREF VREF 0 DC VADC_REF
+VMAX VMAX 0 DC VADC_MAX
+VRESET VRESET VMAX DC 0
+VMIN VMIN 0 DC VADC_MIN
 
 *----------------------------------------------------------------
 * RAMP
@@ -66,17 +71,36 @@ R1 VRAMP 0 1T
 * Model reset as a variable resistor to
 BR2 VRAMP VMIN I=V(ERASE)*V(VRAMP,VMIN)/100
 
+*----------------------------------------------------------------
+* Model the ramp generation and data for the memory
+*----------------------------------------------------------------
+* I could not really think of a good way to generate digital signals in SPICE
+* So I generated the analog ramp, then digitize it to generate the DATA bit
+* In a real world circuit we would use a DAC, because in SystemVerilog, it's
+* easy to generate a digital bus
+B1 VADC 0 V = V(VRAMP) - VADC_MIN
+XADC7 VADC   REST_7 VREF DATA_7  READ CONVERT VDD ADC_1BIT
+
+* Model the DATA output as pulled to VDD when we're reading
+.SUBCKT ADC_1BIT VIN VOUT VREF DATA READ CONVERT VDD
+B1 D 0 V= V(VIN) > V(VREF)/2 ? 1 : 0
+B2 VOUT 0  V = 2*(V(VIN) - V(VREF)/2*V(D))
+B3 DATA_INT 0 V = V(D)*V(VDD)
+B4 DATA_INT DATA I=V(CONVERT)*V(DATA_INT,DATA)/1k
+B5 DATA VDD I=V(READ)*V(DATA,VDD)/1e4
+.ENDS
+
 
 .include memcell.cir
-XMEM READ WRITE VRAMP VSS MEMCELL 
+XMEM READ WRITE DATA_7 VSS MEMCELL 
 
 
 .control
 set color0=white
 set color1=black
-tran 100n 30u
+tran 100n 40u
 plot v(WRITE) v(READ) v(VRAMP) 
-plot v(XMEM.DMEM) v(XMEM.VG)
+plot v(VRAMP) v(XMEM.DMEM) v(XMEM.VG)
 set gnuplot_terminal = png/quit
 
 gnuplot memcell_signal_plot WRITE READ VRAMP 
