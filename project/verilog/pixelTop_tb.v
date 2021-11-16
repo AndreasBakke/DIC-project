@@ -5,7 +5,7 @@ module pixelTop_tb();
     //Setter opp klokke og reset
     logic clk=0;    
     logic reset=0;
-    parameter integer clk_period =500;
+    parameter integer clk_period =57;//klokker for 1 syklus: 525. Tid for 1 syklus (spice)- 60us: clk= 
     parameter integer sim_end =clk_period*7200;
     always #clk_period clk=~clk;
 
@@ -29,7 +29,7 @@ module pixelTop_tb();
 
             $dumpfile("pixelTop.vcd");
             $dumpvars(0, pixelTop_tb);     
-            #600000; reset=1;#clk_period;
+            #80000; reset=1;#clk_period;//Test reset @ 80us
             reset=0;
             #sim_end
             $stop;
