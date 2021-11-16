@@ -38,7 +38,6 @@ module PIXEL_STATE (
                 convert <= 0;
                 read0   <= 0;
                 read1   <= 0;
-                // vbn     = clk;
             end
             CONVERT: begin
                 erase   <= 0;
@@ -46,8 +45,6 @@ module PIXEL_STATE (
                 convert <= 1;
                 read0   <= 0;
                 read1   <= 0;
-                // vbn     = 0;//Går dette?
-                // ramp    = clk;
             end
             READ0: begin
                 erase   <= 0;
@@ -67,7 +64,6 @@ module PIXEL_STATE (
     end
 
 
-//Bruk always_comb istedenfor siden dette er kombinatorikk
     always_ff @(posedge clk or posedge reset) begin
         if(reset)begin
             state = ERASE;
@@ -77,7 +73,7 @@ module PIXEL_STATE (
         end
         else begin
             if (!counter) begin
-                case (state)
+                case (state)//Kontrollere hva som er neste Counter, slik at dette endres neste gang.
                     ERASE: begin
                         state       = EXPOSE;
                         counter     = next_counter;
@@ -107,7 +103,7 @@ module PIXEL_STATE (
             end //end if(!counter)
         end//end else
         counter = counter -1;
-    end //end always_comb
+    end //end always_ff
 
 endmodule
 

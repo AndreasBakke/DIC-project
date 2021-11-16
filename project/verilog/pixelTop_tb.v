@@ -29,7 +29,7 @@ module pixelTop_tb();
 
             $dumpfile("pixelTop.vcd");
             $dumpvars(0, pixelTop_tb);     
-            #600000; reset=1;#clk_period;
+            #600000; reset=1;#clk_period;//Test reset @ 600us
             reset=0;
             #sim_end
             $stop;
