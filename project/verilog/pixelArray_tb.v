@@ -1,5 +1,5 @@
 `timescale 1 ns / 1 ps
-//Vi må ha en klokke, og masse annet stash for å sjekke at ting funker. Finne en måte å gi data (se på pizelSensor_tb)
+//WARNING --- OUTDATED AFTER UPDATES IN pixelArray.v - Do not use
 
 
 //Merk at oppsett er veldig likt pixelSensor_tb.v for enkelhet
