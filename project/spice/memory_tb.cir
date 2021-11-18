@@ -1,0 +1,172 @@
+8 BIT MEMORY TESTBENCH
+
+
+.include ../../models/ptm_130_ngspice.spi
+.include ../../lib/SUN_TR_GF130N.spi
+.include memory.cir
+
+.option TNOM=27 GMIN=1e-15 reltol=1e-6 abstol=1e-6 
+
+.param TRF = 10n
+.param TCLK = 100n
+.param C_ERASE = 5
+.param C_EXPOSE = 255
+.param C_CONVERT = 255
+.param C_READ = 5
+
+*- Pulse Width of control signals
+.param PW_ERASE =  {(C_ERASE +1)*TCLK}
+.param PW_EXPOSE =  {(C_EXPOSE +1)*TCLK}
+.param PW_CONVERT =  {(C_CONVERT +1)*TCLK}
+.param PW_READ =  {(C_READ +1)*TCLK}
+
+*- Delay of control signals
+.param TD_ERASE = {TCLK }
+.param TD_EXPOSE = {TD_ERASE + PW_ERASE + TCLK}
+.param TD_CONVERT = {TD_EXPOSE + PW_EXPOSE + TCLK}
+.param TD_READ = {TD_CONVERT + PW_CONVERT + TCLK}
+.param PERIOD = {TD_READ + PW_READ + TCLK}
+.param TD_WRITE = 10u
+*- Analog parameters
+.param VDD = 1.5
+.param VADC_MIN = 0.5
+.param VADC_MAX = 1.1
+*1.1-0.5 = 0.6 V
+.param VADC_REF = {VADC_MAX - VADC_MIN} 
+.param VADC_LSB = {VADC_REF/256}
+
+VDD VDD VSS dc VDD
+VSS VSS 0 dc 0
+
+*- Control signals
+VERASE ERASE 0 dc 0 pulse (0 VDD TD_ERASE TRF TRF PW_ERASE PERIOD)
+VEXPOSE EXPOSE 0 dc 0 pulse (0 VDD TD_EXPOSE TRF TRF PW_EXPOSE PERIOD)
+VCONVERT CONVERT 0 dc 0 pulse (0 VDD TD_CONVERT TRF TRF PW_CONVERT PERIOD)
+VREAD READ 0 dc 0 pulse (0 VDD TD_READ TRF TRF PW_READ PERIOD)
+
+VCMP_OUT VCMP_OUT 0 dc 0 pulse(0 VDD 0 TRF TRF 50u PERIOD)
+
+*- ADC related sources
+VREF VREF 0 DC VADC_REF
+VMAX VMAX 0 DC VADC_MAX
+VRESET VRESET VMAX DC 0
+VMIN VMIN 0 DC VADC_MIN
+
+VADCIN VADCIN 0 DC 0.8V
+
+
+*----------------------------------------------------------------
+* RAMP
+*----------------------------------------------------------------
+* Use a capacitor and current source to model a ramp
+* I = C x dV/dt, where
+* dt = PW_CONVERT
+* C = 1n
+* dV = VADC_MAX - VADC_MIN
+BR1 0 VRAMP I = V(CONVERT)*( 1n*(VADC_MAX - VADC_MIN)/PW_CONVERT)
+CR1 VRAMP 0 1n ic=0
+
+* SPICE freaks out if any node only have current sources and capacitors on it. so insert a resistor to ground
+R1 VRAMP 0 1T
+
+* Model reset as a variable resistor to
+BR2 VRAMP VMIN I=V(ERASE)*V(VRAMP,VMIN)/100
+
+*----------------------------------------------------------------
+* Model the ramp generation and data for the memory
+*----------------------------------------------------------------
+* I could not really think of a good way to generate digital signals in SPICE
+* So I generated the analog ramp, then digitize it to generate the DATA bit
+* In a real world circuit we would use a DAC, because in SystemVerilog, it's
+* easy to generate a digital bus
+B1 VADC 0 V = V(VRAMP) - VADC_MIN
+XADC7 VADC   REST_7 VREF DATA_7  READ CONVERT VDD ADC_1BIT
+XADC6 REST_7 REST_6 VREF DATA_6  READ CONVERT VDD ADC_1BIT
+XADC5 REST_6 REST_5 VREF DATA_5  READ CONVERT VDD ADC_1BIT
+XADC4 REST_5 REST_4 VREF DATA_4  READ CONVERT VDD ADC_1BIT
+XADC3 REST_4 REST_3 VREF DATA_3  READ CONVERT VDD ADC_1BIT
+XADC2 REST_3 REST_2 VREF DATA_2  READ CONVERT VDD ADC_1BIT
+XADC1 REST_2 REST_1 VREF DATA_1  READ CONVERT VDD ADC_1BIT
+XADC0 REST_1 REST_0 VREF DATA_0  READ CONVERT VDD ADC_1BIT
+XDAC0 DATA_7 DATA_6 DATA_5 DATA_4 DATA_3 DATA_2 DATA_1 DATA_0 DO VDD DAC_8BIT
+*----------------------------------------------------------------
+* 1-bit ADC model
+*----------------------------------------------------------------
+* Use the well know fact that we can connect multiple 1 bit ADCs in series,
+* as long as we multiply the analog remainder by two.
+* Or in maths:
+*   if in > ref/2:
+*      d = 1
+*      out = 2*in - ref
+*   else:
+*      d = 0
+*      out = 2*in
+*
+* Model the DATA output as pulled to VDD when we're reading
+.SUBCKT ADC_1BIT VIN VOUT VREF DATA READ CONVERT VDD
+B1 D 0 V= V(VIN) > V(VREF)/2 ? 1 : 0
+B2 VOUT 0  V = 2*(V(VIN) - V(VREF)/2*V(D))
+B3 DATA_INT 0 V = V(D)*V(VDD)
+B4 DATA_INT DATA I=V(CONVERT)*V(DATA_INT,DATA)/1k
+B5 DATA VDD I=V(READ)*V(DATA,VDD)/1e4
+.ENDS
+
+*----------------------------------------------------------------
+* 8-bit DAC model model
+*----------------------------------------------------------------
+* integer = 2^7*b7 + 2^6*b6 ... 2^0*b0
+.SUBCKT DAC_8BIT DATA_7 DATA_6 DATA_5 DATA_4 DATA_3 DATA_2 DATA_1 DATA_0 DO VDD
+B1 DO_VDD 0 V = 128*V(DATA_7) + 64*V(DATA_6) + 32*V(DATA_5) + 16*V(DATA_4)+ 8*V(DATA_3) + 4*V(DATA_2) + 2*V(DATA_1) + 1*V(DATA_0)
+B2 DO 0 V = V(DO_VDD)/V(VDD)
+.ENDS
+
+
+
+
+
+*Instantiate memory
+XMEMORY READ VCMP_OUT
++ DATA_7 DATA_6 DATA_5 DATA_4 DATA_3 DATA_2 DATA_1 DATA_0 VDD VSS MEMORY
+
+
+
+
+
+.control
+set color0=white
+set color1=black
+tran 1n 60u
+plot v(EXPOSE) v(READ) v(CONVERT) v(VRAMP) v(WRITE)
+*plot v(VADC) v(VINADC) 
+*plot v(DO) v(READ) v(WRITE)
+*plot v(STORE)
+*plot v(XMEMORY.XM1.VG) v(XMEMORY.XM2.VG) v(XMEMORY.XM3.VG) v(XMEMORY.XM4.VG) v(XMEMORY.XM5.VG) v(XMEMORY.XM6.VG) 
+*plot v(XMEMORY.XM7.VG) v(XMEMORY.XM8.VG)
+plot v(XMEMORY.XM1.DMEM) 
+plot v(XMEMORY.XM2.DMEM) 
+plot v(XMEMORY.XM3.DMEM) v(XMEMORY.XM4.DMEM) 
+plot v(XMEMORY.XM5.DMEM) v(XMEMORY.XM6.DMEM)
+plot v(XMEMORY.XM7.DMEM) v(XMEMORY.XM8.DMEM) v(READ)
+plot v(DATA_7) v(DATA_6) 
+*plot v(DATA_5) v(DATA_4) 
+*plot v(DATA_3) v(DATA_2) v(DATA_1) v(DATA_0)
+
+set hcopydevtype = svg
+
+hardcopy memory_data.svg DATA_7 DATA_6 DATA_5 DATA_4 DATA_3 DATA_2 DATA_1 DATA_0
++ title 'Memory digital data' xlabel 'time' ylabel 'voltage' 
+
+
+hardcopy memory_digital.svg DO VCMP_OUT 
++ title 'Digital value to be stored' xlabel 'time' ylabel ' voltage'
+set gnuplot_terminal = png/quit
+
+gnuplot memory_control VCMP_OUT READ VRAMP CONVERT 
+gnuplot memory DO
+.endc
+.end
+
+
+
+
+

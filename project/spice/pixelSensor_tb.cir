@@ -32,6 +32,7 @@
 .include ../../models/ptm_130_ngspice.spi
 .include ../../lib/SUN_TR_GF130N.spi
 
+
 *----------------------------------------------------------------
 * Options
 *----------------------------------------------------------------
@@ -59,7 +60,8 @@
 .param TD_EXPOSE = {TD_ERASE + PW_ERASE + TCLK}
 .param TD_CONVERT = {TD_EXPOSE + PW_EXPOSE + TCLK}
 .param TD_READ = {TD_CONVERT + PW_CONVERT + TCLK}
-.param PERIOD = {TD_READ + PW_READ + TCLK}
+.param PERIOD = {TD_READ + PW_READ + TCLK} 
+*PERIOD = ( 0.1u+0.6u +0.1u +25.6u +0.1u +25.6u+ 0.1u +0.1u)+ 0.6u + 0.1u = 53u
 
 *- Analog parameters
 .param VDD = 1.5
@@ -87,6 +89,7 @@ VRESET VRESET VMAX DC 0
 VMIN VMIN 0 DC VADC_MIN
 
 
+
 *----------------------------------------------------------------
 * BIAS
 *----------------------------------------------------------------
@@ -98,7 +101,7 @@ XMNB0 VBN1 VBN1 VSS VSS NCHCM2
 * DUT
 *----------------------------------------------------------------
 .include pixelSensor.cir
-XDUT VBN1 VRAMP VRESET ERASE EXPOSE READ
+XDUT VBN1 VRAMP2 VRESET ERASE EXPOSE READ
 + DATA_7 DATA_6 DATA_5 DATA_4 DATA_3 DATA_2 DATA_1 DATA_0 VDD VSS PIXEL_SENSOR
 
 
@@ -119,6 +122,15 @@ R1 VRAMP 0 1T
 * Model reset as a variable resistor to
 BR2 VRAMP VMIN I=V(ERASE)*V(VRAMP,VMIN)/100
 
+* Needs a separate ramp for comparator and ADC
+BR3 0 VRAMP2 I = V(CONVERT)*( 1n*(VADC_MAX - VADC_MIN)/PW_CONVERT)
+CR2 VRAMP2 0 1n ic=0
+
+* SPICE freaks out if any node only have current sources and capacitors on it. so insert a resistor to ground
+R3 VRAMP2 0 1T
+
+* Model reset as a variable resistor to
+BR4 VRAMP2 VMIN I=V(ERASE)*V(VRAMP2,VMIN)/100
 
 *----------------------------------------------------------------
 * Model the ramp generation and data for the memory
@@ -182,9 +194,13 @@ set color1=black
 unset askquit
 tran 1n 60u
 *plot V(ERASE) V(EXPOSE) V(CONVERT) V(READ)
-plot V(VRAMP) V(CONVERT) V(ERASE)
-plot V(DO)
-plot V(XDUT.VSTORE) V(ERASE) V(EXPOSE) V(CONVERT) V(VRAMP) V(XDUT.VCMP_OUT) V(READ)
+*plot V(VRAMP) V(CONVERT) V(ERASE)
+plot v(READ) v(EXPOSE) v(ERASE) v(CONVERT) v(VRAMP) v(XDUT.VSTORE) 
+*v(XDUT.XS1.VSTORE)
+plot V(DO) v(XDUT.VCMP_OUT)
+*plot v(DATA_7) v(DATA_6) v(DATA_5)
+*plot v(XDUT.XS1.VPG) V(XDUT.VSTORE) V(XDUT.VCMP_OUT)
+plot V(VRAMP) V(XDUT.VCMP_OUT) v(READ) v(EXPOSE) v(ERASE) v(XDUT.VSTORE) v(CONVERT)
 
 plot v(xdut.xm1.xm1.vg) v(xdut.xm1.xm1.dmem)
 plot v(xdut.xm1.xm2.vg) v(xdut.xm1.xm2.dmem)
@@ -194,5 +210,11 @@ plot v(xdut.xm1.xm5.vg) v(xdut.xm1.xm5.dmem)
 plot v(xdut.xm1.xm6.vg) v(xdut.xm1.xm6.dmem)
 plot v(xdut.xm1.xm7.vg) v(xdut.xm1.xm7.dmem)
 plot v(xdut.xm1.xm8.vg) v(xdut.xm1.xm8.dmem)
+plot v(VRAMP2) v(VRAMP)
+
+set hcopydevtype = svg
+
+hardcopy control_signals.svg EXPOSE ERASE READ CONVERT
++ title 'Sensor control signals' xlabel 'time' ylabel 'voltage'
 .endc
 .end
