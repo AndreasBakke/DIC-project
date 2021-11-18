@@ -69,10 +69,13 @@ tran 100n 60u
 plot v(EXPOSE) v(ERASE) v(VRESET)
 plot v(XSEN.VSTORE) v(XSEN.PG)
 
-set gnuplot_terminal = png/quit
+set hcopydevtype = svg
 
-gnuplot sensor_control EXPOSE ERASE VRESET
-gnuplot sensor XSEN.VSTORE XSEN.PG
+hardcopy sensor.svg XSEN.VPG XSEN.VSTORE
++ title 'Sensor voltages' xlabel 'time' ylabel 'voltage' 
+
+hardcopy sensor_control.svg EXPOSE ERASE READ CONVERT
++ title 'Sensor control signals' xlabel 'time' ylabel 'voltage' 
 
 .endc
 .end

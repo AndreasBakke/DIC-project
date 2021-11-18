@@ -211,5 +211,10 @@ plot v(xdut.xm1.xm6.vg) v(xdut.xm1.xm6.dmem)
 plot v(xdut.xm1.xm7.vg) v(xdut.xm1.xm7.dmem)
 plot v(xdut.xm1.xm8.vg) v(xdut.xm1.xm8.dmem)
 plot v(VRAMP2) v(VRAMP)
+
+set hcopydevtype = svg
+
+hardcopy control_signals.svg EXPOSE ERASE READ CONVERT
++ title 'Sensor control signals' xlabel 'time' ylabel 'voltage'
 .endc
 .end

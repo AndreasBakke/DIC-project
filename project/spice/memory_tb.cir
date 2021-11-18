@@ -44,7 +44,7 @@ VEXPOSE EXPOSE 0 dc 0 pulse (0 VDD TD_EXPOSE TRF TRF PW_EXPOSE PERIOD)
 VCONVERT CONVERT 0 dc 0 pulse (0 VDD TD_CONVERT TRF TRF PW_CONVERT PERIOD)
 VREAD READ 0 dc 0 pulse (0 VDD TD_READ TRF TRF PW_READ PERIOD)
 
-VWRITE WRITE 0 dc 0 pulse(0 VDD 0 TRF TRF 30u PERIOD)
+VCMP_OUT VCMP_OUT 0 dc 0 pulse(0 VDD 0 TRF TRF 50u PERIOD)
 
 *- ADC related sources
 VREF VREF 0 DC VADC_REF
@@ -125,7 +125,7 @@ B2 DO 0 V = V(DO_VDD)/V(VDD)
 
 
 *Instantiate memory
-XMEMORY READ WRITE 
+XMEMORY READ VCMP_OUT
 + DATA_7 DATA_6 DATA_5 DATA_4 DATA_3 DATA_2 DATA_1 DATA_0 VDD VSS MEMORY
 
 
@@ -138,7 +138,7 @@ set color1=black
 tran 1n 60u
 plot v(EXPOSE) v(READ) v(CONVERT) v(VRAMP) v(WRITE)
 *plot v(VADC) v(VINADC) 
-plot v(DO) v(READ) v(WRITE)
+*plot v(DO) v(READ) v(WRITE)
 *plot v(STORE)
 *plot v(XMEMORY.XM1.VG) v(XMEMORY.XM2.VG) v(XMEMORY.XM3.VG) v(XMEMORY.XM4.VG) v(XMEMORY.XM5.VG) v(XMEMORY.XM6.VG) 
 *plot v(XMEMORY.XM7.VG) v(XMEMORY.XM8.VG)
@@ -151,9 +151,17 @@ plot v(DATA_7) v(DATA_6)
 *plot v(DATA_5) v(DATA_4) 
 *plot v(DATA_3) v(DATA_2) v(DATA_1) v(DATA_0)
 
+set hcopydevtype = svg
+
+hardcopy memory_data.svg DATA_7 DATA_6 DATA_5 DATA_4 DATA_3 DATA_2 DATA_1 DATA_0
++ title 'Memory digital data' xlabel 'time' ylabel 'voltage' 
+
+
+hardcopy memory_digital.svg DO VCMP_OUT 
++ title 'Digital value to be stored' xlabel 'time' ylabel ' voltage'
 set gnuplot_terminal = png/quit
 
-gnuplot memory_control WRITE READ VRAMP CONVERT 
+gnuplot memory_control VCMP_OUT READ VRAMP CONVERT 
 gnuplot memory DO
 .endc
 .end

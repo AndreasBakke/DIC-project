@@ -2,22 +2,13 @@
 
 * Capacitor to model gate-source capacitance
 C1 VSTORE VSS 100f
-*This resistor now does nothing because transistors are used instead of switches
-*Rleak VSTORE VSS 100T
-*Transistor to work as a capacitor
-*M3 VSS VSTORE VSS VSS nmos w=0.2u  l=0.13u
-
-
 
 *use transistor as switch for resetting store voltage, it pulls the VSTORE node to RESET when ERASE goes high
 M1 RESET ERASE VSTORE VSS nmos w=0.2u  l=0.13u
 
 *EXPOSE switch to put the voltage on the photogate onto the STORE node when EXPOSE is high
-M2 PG EXPOSE VSTORE VSS nmos w=0.2u  l=0.13u
+M2 VPG EXPOSE VSTORE VSS nmos w=0.2u  l=0.13u
 
 * Model photocurrent
 Rphoto VPG VSS 1G
-
-
-
 .ENDS

@@ -100,6 +100,11 @@ set color1=black
 tran 1n 60u
 
 plot v(VRAMP) v(VSTORE) v(VCMP_OUT)
+
+set hcopydevtype = svg
+
+hardcopy comparator.svg VCMP_OUT VSTORE VRAMP
++ title 'Comparator' xlabel 'time' ylabel ' voltage' 
  
  
 set gnuplot_terminal = png/quit

@@ -1,12 +1,23 @@
 MEMORY CELL TESTBENCH 
 
 
+*----------------------------------------------------------------
+* Include
+*----------------------------------------------------------------
 .include ../../models/ptm_130_ngspice.spi
 .include ../../lib/SUN_TR_GF130N.spi
 
-.option TNOM=27 GMIN=1e-15 reltol=1e-6 abstol=1e-6 
 
-.param TRF = 1n
+*----------------------------------------------------------------
+* Options
+*----------------------------------------------------------------
+.option TNOM=27 GMIN=1e-15 reltol=1e-6 abstol=1e-6
+
+*----------------------------------------------------------------
+* PARAMETERS
+*----------------------------------------------------------------
+
+.param TRF = 10n
 .param TCLK = 100n
 .param C_ERASE = 5
 .param C_EXPOSE = 255
@@ -15,26 +26,23 @@ MEMORY CELL TESTBENCH
 
 *- Pulse Width of control signals
 .param PW_ERASE =  {(C_ERASE +1)*TCLK}
-.param PW_EXPOSE =  5u
+.param PW_EXPOSE =  {(C_EXPOSE +1)*TCLK}
 .param PW_CONVERT =  {(C_CONVERT +1)*TCLK}
 .param PW_READ =  {(C_READ +1)*TCLK}
-
-
 
 *- Delay of control signals
 .param TD_ERASE = {TCLK }
 .param TD_EXPOSE = {TD_ERASE + PW_ERASE + TCLK}
-*.param TD_EXPOSE = {TD_ERASE - 5*PW_ERASE + TCLK}
 .param TD_CONVERT = {TD_EXPOSE + PW_EXPOSE + TCLK}
 .param TD_READ = {TD_CONVERT + PW_CONVERT + TCLK}
-.param PERIOD = {TD_READ + PW_READ + TCLK}
+.param PERIOD = {TD_READ + PW_READ + TCLK} 
+
 *- Analog parameters
 .param VDD = 1.5
 .param VADC_MIN = 0.5
 .param VADC_MAX = 1.1
 .param VADC_REF = {VADC_MAX - VADC_MIN}
 .param VADC_LSB = {VADC_REF/256}
-
 
 *----------------------------------------------------------------
 * Sources
@@ -44,9 +52,10 @@ VSS VSS 0 dc 0
 
 *- Control signals
 VERASE ERASE 0 dc 0 pulse (0 VDD TD_ERASE TRF TRF PW_ERASE PERIOD)
-VWRITE WRITE 0 dc 0 pulse (0 VDD 0 TRF TRF 10u 25u)
+VEXPOSE EXPOSE 0 dc 0 pulse (0 VDD TD_EXPOSE TRF TRF PW_EXPOSE PERIOD)
 VCONVERT CONVERT 0 dc 0 pulse (0 VDD TD_CONVERT TRF TRF PW_CONVERT PERIOD)
-VREAD READ 0 dc 0 pulse (0 VDD 30u TRF TRF PW_READ PERIOD)
+VREAD READ 0 dc 0 pulse (0 VDD TD_READ TRF TRF PW_READ PERIOD)
+VCMP_OUT VCMP_OUT 0 dc 0 pulse(0 VDD 0 TRF TRF 50u PERIOD)
 
 *- ADC related sources
 VREF VREF 0 DC VADC_REF
@@ -79,7 +88,7 @@ BR2 VRAMP VMIN I=V(ERASE)*V(VRAMP,VMIN)/100
 * In a real world circuit we would use a DAC, because in SystemVerilog, it's
 * easy to generate a digital bus
 B1 VADC 0 V = V(VRAMP) - VADC_MIN
-XADC7 VADC   REST_7 VREF DATA_7  READ CONVERT VDD ADC_1BIT
+XADC7 VADC REST_7 VREF DATA READ CONVERT VDD ADC_1BIT
 
 * Model the DATA output as pulled to VDD when we're reading
 .SUBCKT ADC_1BIT VIN VOUT VREF DATA READ CONVERT VDD
@@ -92,20 +101,25 @@ B5 DATA VDD I=V(READ)*V(DATA,VDD)/1e4
 
 
 .include memcell.cir
-XMEM READ WRITE DATA_7 VSS MEMCELL 
+XMEM READ VCMP_OUT DATA VSS MEMCELL 
 
 
 .control
 set color0=white
 set color1=black
-tran 100n 40u
-plot v(WRITE) v(READ) v(VRAMP) 
-plot v(VRAMP) v(XMEM.DMEM) v(XMEM.VG)
-set gnuplot_terminal = png/quit
+tran 100n 60u
+plot v(WRITE) v(READ) v(VRAMP) v(CONVERT)
+plot v(VRAMP) v(XMEM.DMEM) v(XMEM.VG) v(DATA) v(WRITE)
 
-gnuplot memcell_signal_plot WRITE READ VRAMP 
-gnuplot memcell_gate_plot XMEM.DMEM XMEM.VG
 
+set hcopydevtype = svg
+
+
+hardcopy memcell_control_low.svg VCMP_OUT READ VRAMP
++ title 'Control signals memory cell' xlabel 'time' ylabel ' voltage' 
+
+hardcopy memcell_high.svg  XMEM.DMEM XMEM.VG DATA VCMP_OUT READ VRAMP
++ title 'Memory cell signals' xlabel 'time' ylabel ' voltage'
 
 .endc
 .end
