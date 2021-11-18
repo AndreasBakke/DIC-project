@@ -1,5 +1,5 @@
 `timescale 1 ns / 1 ps
-
+//WARNING - DOES NOT WORK ANYMORE AFTER UPDATED PIXEL STATE DESIGN
 
 module pixelState_tb;
 
