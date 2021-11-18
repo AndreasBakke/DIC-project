@@ -1,3 +1,4 @@
 # ICProsjekt
+Design of Integrated Circuits 2021 project
 
-Kjørda ICProsjekt 2021
+Andreas S. Bakke & Øyvind M. Bjaerum
