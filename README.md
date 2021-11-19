@@ -1,6 +1,8 @@
 # ICProsjekt
 Design of Integrated Circuits 2021 project
 
-Verilog files may be read in the folder Project-Verilog
+Verilog files may be read in the folder /project/verilog
+
+SPICE files are found in the folder /project/spice
 
 Andreas S. Bakke & Øyvind M. Bjaerum
